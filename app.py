@@ -194,7 +194,7 @@ def index():
     return render_template_string(html_content)
 
 
-# 2. 링크 생성 API
+# 2. 링크 생성 API (UUID 타입 오류 방지를 위해 receiver_uid에 None 전달)
 @app.route("/api/create-link", methods=["POST"])
 def create_link():
     data = request.json
@@ -219,7 +219,7 @@ def create_link():
             {
                 "payment_code": flyer_code,
                 "sender_uid": seller_uid,
-                "receiver_uid": "NONE",
+                "receiver_uid": None,
                 "amount": amount,
                 "status": "PENDING",
             }
