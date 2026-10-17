@@ -7,8 +7,10 @@ from supabase import Client, create_client
 app = Flask(__name__)
 
 # Supabase URL 및 키 설정 (※ Render 환경 변수나 아래에 정확한 값을 확인해주세요)
-SUPABASE_URL = os.environ.get("https://ylaopptsqknjlttcvqti.supabase.co")
-SUPABASE_KEY = os.environ.get("sb_secret_e1rBcLppys8nZzav1XZilw_c6kZD5UM")
+# Supabase URL 및 키 직접 대입 (오류 원천 차단)
+SUPABASE_URL = "https://ylaopptsqknjlttcvqti.supabase.co"
+SUPABASE_KEY = "sb_secret_e1rBcLppys8nZzav1XZilw_c6kZD5UM"
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # Render 외부 URL 자동 인식
