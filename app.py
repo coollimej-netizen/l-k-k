@@ -6,12 +6,22 @@ from supabase import Client, create_client
 
 app = Flask(__name__)
 
-# Supabase 및 Render 외부 URL 환경 변수 설정
-SUPABASE_URL = os.environ.get("SUPABASE_URL")
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+# Render 환경 변수에서 Supabase 정보 불러오기
+SUPABASE_URL = os.environ.get("https://ylaopptsqknjlttcvqti.supabase.co")
+SUPABASE_KEY = os.environ.get("sb_secret_e1rBcLppys8nZzavlXZilw_c6kZD5UM")
+
+# 만약 환경 변수가 설정되지 않았을 경우를 대비한 방어 코드 (필요시 직접 입력 가능)
+# SUPABASE_URL = SUPABASE_URL or "https://ylaopptsqknjlttcvqti.supabase.co"
+# SUPABASE_KEY = SUPABASE_KEY or "본인의_시크릿키"
+
+if not SUPABASE_URL or not SUPABASE_KEY:
+    print(
+        "[경고] SUPABASE_URL 또는 SUPABASE_KEY 환경 변수가 설정되지 않았습니다."
+    )
+
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# Render에 배포 시 자동으로 주소를 인식하거나 지정된 URL 사용
+# Render 외부 URL 자동 인식 (설정되어 있지 않으면 localhost 사용)
 RENDER_EXTERNAL_URL = os.environ.get(
     "RENDER_EXTERNAL_URL", "http://localhost:5000"
 )
@@ -22,12 +32,12 @@ def index():
     return "포인트 송금 및 링크 시스템 서버가 정상 작동 중입니다."
 
 
-# 1. 사용자 등록 (테스트용 API)
+# 1. 사용자 등록 API
 @app.route("/api/register", methods=["POST"])
 def register_user():
     data = request.json
     username = data.get("username")
-    initial_points = data.get("points", 1000)  # 기본 지급 포인트
+    initial_points = data.get("points", 1000)
 
     if not username:
         return jsonify({"error": "사용자 이름을 입력해주세요."}), 400
@@ -43,7 +53,7 @@ def register_user():
         return jsonify({"error": str(e)}), 500
 
 
-# 2. 포인트 송금 요청 (링크 생성)
+# 2. 포인트 송금 요청 및 링크 생성 API
 @app.route("/api/send", methods=["POST"])
 def send_points():
     data = request.json
@@ -55,7 +65,7 @@ def send_points():
         return jsonify({"error": "잘못된 요청 데이터입니다."}), 400
 
     try:
-        # 송금자의 잔액 확인
+        # 송금자 잔액 확인
         sender_res = (
             supabase.table("users")
             .select("points")
@@ -69,12 +79,12 @@ def send_points():
         if current_points < amount:
             return jsonify({"error": "잔액이 부족합니다."}), 400
 
-        # 잔액 차감
+        # 송금자 잔액 차감
         supabase.table("users").update({"points": current_points - amount}).eq(
             "id", sender_uid
         ).execute()
 
-        # 고유 결제번호 생성 (예: TX-20261017-A1B2C3)
+        # 고유 결제번호 생성 (예: TX-20261017-ABC123)
         payment_code = f"TX-{datetime.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
 
         # 거래 내역 저장
@@ -88,7 +98,7 @@ def send_points():
             }
         ).execute()
 
-        # 링크 생성
+        # 송금 수령 링크 생성
         claim_link = f"{RENDER_EXTERNAL_URL}/claim?code={payment_code}"
 
         return jsonify(
@@ -103,7 +113,7 @@ def send_points():
         return jsonify({"error": str(e)}), 500
 
 
-# 3. 링크 접속 시 포인트 수령 및 확인증 출력
+# 3. 링크 접속 시 포인트 수령 및 송금 확인증 출력
 @app.route("/claim", methods=["GET"])
 def claim_points():
     payment_code = request.args.get("code")
@@ -124,7 +134,7 @@ def claim_points():
         if tx["status"] == "COMPLETED":
             return render_template_string(
                 """
-                <div style="font-family: Arial; padding: 30px; text-align: center;">
+                <div style="font-family: Arial; padding: 40px; text-align: center;">
                     <h2 style="color: #d32f2f;">이미 수령 완료된 송금 링크입니다.</h2>
                     <p>결제번호: <b>{{ code }}</b></p>
                 </div>
@@ -155,7 +165,7 @@ def claim_points():
             "payment_code", payment_code
         ).execute()
 
-        # 송금 확인증 렌더링
+        # 송금 확인증 렌더링 (금액, 결제번호, 결제일 포함)
         return render_template_string(
             """
             <div style="font-family: Arial; padding: 30px; max-width: 450px; margin: 40px auto; border: 2px solid #4CAF50; border-radius: 12px; background: #f9f9f9;">
@@ -177,7 +187,7 @@ def claim_points():
         return f"처리 중 오류가 발생했습니다: {str(e)}", 500
 
 
-# 4. 사용자별 거래 내역 조회 (결제번호 포함)
+# 4. 사용자별 거래 내역 조회 API
 @app.route("/api/history/<uid>", methods=["GET"])
 def get_history(uid):
     try:
