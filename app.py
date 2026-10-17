@@ -6,11 +6,9 @@ from supabase import Client, create_client
 
 app = Flask(__name__)
 
-# Supabase URL 및 키 설정 (※ Render 환경 변수나 아래에 정확한 값을 확인해주세요)
-# Supabase URL 및 키 직접 대입 (오류 원천 차단)
-SUPABASE_URL = "https://ylaopptsqknjlttcvqti.supabase.co"
-SUPABASE_KEY = "sb_secret_OU99qplZDhUx-V4D3MQUqA_47fEylfy"
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+# Render 환경 변수에서 안전하게 Supabase URL 및 키 로드
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # Render 외부 URL 자동 인식
@@ -19,7 +17,7 @@ RENDER_EXTERNAL_URL = os.environ.get(
 )
 
 
-# 1. 메인 화면 (로그인 및 관리자 대시보드: 링크 생성, 내역 조회, 삭제)
+# 1. 메인 화면 (관리자 로그인 및 대시보드: 링크 생성, 내역 조회, 삭제)
 @app.route("/", methods=["GET"])
 def index():
     html_content = """
@@ -100,7 +98,7 @@ def index():
                                 </tr>
                             </thead>
                             <tbody id="txTableBody">
-                                <tr><td colspan="5">내역 고침 버튼을 눌러주세요.</td></tr>
+                                <tr><td colspan="5">내역 새로고침 버튼을 눌러주세요.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -220,7 +218,7 @@ def create_link():
         supabase.table("transactions").insert(
             {
                 "payment_code": flyer_code,
-                "sender_uid": seller_uid,  # 판매자 UID 저장
+                "sender_uid": seller_uid,
                 "receiver_uid": "NONE",
                 "amount": amount,
                 "status": "PENDING",
@@ -254,7 +252,7 @@ def get_transactions():
         return jsonify({"error": str(e)}), 500
 
 
-# 4. 링크(전단지 코드) 삭제 API
+# 4. 링크 삭제 API
 @app.route("/api/delete-link", methods=["POST"])
 def delete_link():
     data = request.json
@@ -321,7 +319,7 @@ def claim_points():
             current_points = seller_res.data[0]["points"]
             new_points = current_points + amount
 
-            # 판매자 계정 포인트 업데이트
+            # 판매자 포인트 업데이트
             supabase.table("users").update({"points": new_points}).eq(
                 "id", seller_uid
             ).execute()
