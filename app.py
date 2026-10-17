@@ -41,7 +41,7 @@ def index():
         </head>
         <body>
             <div class="container">
-                <h2>💳 포인트 송금 시스템</h2>
+                <h2>포인트 송금 시스템</h2>
                 
                 <!-- 1. 로그인 / 계정 등록 -->
                 <div class="section">
@@ -248,11 +248,11 @@ def claim_points():
             "payment_code", payment_code
         ).execute()
 
-        # 송금 확인증 렌더링
+        # 송금 확인증 렌더링 (이모지 대신 HTML 엔티티 사용)
         return render_template_string(
             """
             <div style="font-family: Arial; padding: 30px; max-width: 450px; margin: 40px auto; border: 2px solid #4CAF50; border-radius: 12px; background: #f9f9f9;">
-                <h2 style="color: #2e7d32; text-align: center;">🎉 포인트 송금 완료 확인증</h2>
+                <h2 style="color: #2e7d32; text-align: center;">&#127881; 포인트 송금 완료 확인증</h2>
                 <hr style="border: 0; border-top: 1px solid #ddd;">
                 <p><b>결제번호:</b> {{ code }}</p>
                 <p><b>송금 금액:</b> {{ amount }} 원</p>
