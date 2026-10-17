@@ -9,7 +9,7 @@ app = Flask(__name__)
 # Supabase URL 및 키 설정 (※ Render 환경 변수나 아래에 정확한 값을 확인해주세요)
 # Supabase URL 및 키 직접 대입 (오류 원천 차단)
 SUPABASE_URL = "https://ylaopptsqknjlttcvqti.supabase.co"
-SUPABASE_KEY = "sb_secret_e1rBcLppys8nZzav1XZilw_c6kZD5UM"
+SUPABASE_KEY = "sb_secret_OU99qplZDhUx-V4D3MQUqA_47fEylfy"
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
