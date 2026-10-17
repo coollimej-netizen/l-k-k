@@ -6,22 +6,13 @@ from supabase import Client, create_client
 
 app = Flask(__name__)
 
-# Render 환경 변수에서 Supabase 정보 불러오기
-SUPABASE_URL = os.environ.get("https://ylaopptsqknjlttcvqti.supabase.co")
-SUPABASE_KEY = os.environ.get("sb_secret_e1rBcLppys8nZzavlXZilw_c6kZD5UM")
-
-# 만약 환경 변수가 설정되지 않았을 경우를 대비한 방어 코드 (필요시 직접 입력 가능)
-# SUPABASE_URL = SUPABASE_URL or "https://ylaopptsqknjlttcvqti.supabase.co"
-# SUPABASE_KEY = SUPABASE_KEY or "본인의_시크릿키"
-
-if not SUPABASE_URL or not SUPABASE_KEY:
-    print(
-        "[경고] SUPABASE_URL 또는 SUPABASE_KEY 환경 변수가 설정되지 않았습니다."
-    )
-
+# Supabase URL 및 키 직접 설정 (에러 원천 차단)
+# 환경 변수에서 가져오기 (GitHub에 키가 노출되지 않음)
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# Render 외부 URL 자동 인식 (설정되어 있지 않으면 localhost 사용)
+# Render 외부 URL 자동 인식
 RENDER_EXTERNAL_URL = os.environ.get(
     "RENDER_EXTERNAL_URL", "http://localhost:5000"
 )
@@ -84,7 +75,7 @@ def send_points():
             "id", sender_uid
         ).execute()
 
-        # 고유 결제번호 생성 (예: TX-20261017-ABC123)
+        # 고유 결제번호 생성
         payment_code = f"TX-{datetime.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
 
         # 거래 내역 저장
